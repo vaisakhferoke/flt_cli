@@ -1,5 +1,5 @@
 name: flt_cli
-description: A sample command-line application.
+description: A simple Flutter CLI tool to auto-generate folders and files in GetX-style architecture.
 version: 1.0.0
 repository: https://github.com/vaisakhferoke/flt_cli
 
