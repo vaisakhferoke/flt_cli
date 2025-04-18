@@ -98,8 +98,8 @@ void createDomainFolder(String parentFolder, String name) {
   final packageName = getPackageName(); // 👈 Get package name dynamically
   final basePathUrls =
       parentFolder.isEmpty
-          ? 'lib/app/repositories'
-          : 'lib/app/repositories/$parentFolder';
+          ? 'lib/app/domain/repositories'
+          : 'lib/app/domain/repositories/$parentFolder';
 
   Directory("$basePathUrls/$name").createSync(recursive: true);
 
