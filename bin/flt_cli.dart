@@ -16,8 +16,7 @@ void main(List<String> arguments) {
     if (subCommand.startsWith('page:')) {
       final name = subCommand.split(':')[1];
 
-      createDataFolder(name);
-      createDomainFolder(name);
+      createPage(name);
     } else {
       print('Unknown subcommand: $subCommand');
     }
@@ -26,18 +25,55 @@ void main(List<String> arguments) {
   }
 }
 
-void createDataFolder(String name) {
-  final basePath = 'lib/app/data';
-  final dirs = ['$basePath/app_url/$name', '$basePath/model/$name'];
+void createPage(String fullPath) async {
+  bool isParentPath = false;
+  String parentFolder = '';
+  final parts = fullPath.split('/');
+  if (parts.length > 1) {
+    isParentPath = true;
+    parentFolder = parts.sublist(0, parts.length - 1).join('/');
+  }
+
+  final pageName = parts.last;
+
+  createDataFolder(isParentPath ? parentFolder : '', pageName);
+  createDomainFolder(isParentPath ? parentFolder : '', pageName);
+
+  print('✅ Successfully created page: $pageName under "$parentFolder"');
+}
+
+void createDataFolder(String parentFolder, String name) {
+  print('✅ CPath: $parentFolder');
+
+  final basePathAppUrl =
+      parentFolder.isEmpty
+          ? 'lib/app/data/app_url'
+          : 'lib/app/data/app_url/$parentFolder';
+  final basePathAppModel =
+      parentFolder.isEmpty
+          ? 'lib/app/data/model'
+          : 'lib/app/data/model/$parentFolder';
+  //final dirs = [basePathAppUrl, basePathAppModel];
 
   final packageName = getPackageName(); // 👈 Get package name dynamically
-  for (final dir in dirs) {
+  // // parent section
+  // if (parentFolder.isNotEmpty) {
+  //   for (final dir in dirs) {
+  //     Directory(dir).createSync(recursive: true);
+  //   }
+  // }
+
+  final dirs1 = ['$basePathAppUrl/$name', '$basePathAppModel/$name'];
+
+  for (final dir in dirs1) {
     Directory(dir).createSync(recursive: true);
   }
 
+  File('$basePathAppUrl/$name/${name}_url.dart').createSync();
+
   // Create URL file with boilerplate
   final urlClassName = '${capitalize(name)}Url';
-  writeFile('$basePath/app_url/$name/${name}_url.dart', '''
+  writeFile('$basePathAppUrl/$name/${name}_url.dart', '''
 import 'package:$packageName/app/constants/strings.dart';
 
 class $urlClassName {
@@ -47,9 +83,9 @@ class $urlClassName {
   static String view = '\$baseUrl/view';
 }
 ''');
-
+  File('$basePathAppModel/$name/${name}_model.dart').createSync();
   // Create empty model file
-  writeFile('$basePath/model/$name/${name}_model.dart', '''
+  writeFile('$basePathAppModel/$name/${name}_model.dart', '''
 class ${capitalize(name)}Model {
   // Add fields and fromJson/toJson here
 }
@@ -58,23 +94,47 @@ class ${capitalize(name)}Model {
   print('✅ Created data layer for: $name');
 }
 
-void createDomainFolder(String name) {
-  final basePath = 'lib/app/domain';
-  final dirs = ['$basePath/repositories/$name'];
+void createDomainFolder(String parentFolder, String name) {
+  final packageName = getPackageName(); // 👈 Get package name dynamically
+  final basePathUrls =
+      parentFolder.isEmpty
+          ? 'lib/app/repositories'
+          : 'lib/app/repositories/$parentFolder';
 
-  for (final dir in dirs) {
-    Directory(dir).createSync(recursive: true);
-  }
+  Directory("$basePathUrls/$name").createSync(recursive: true);
 
-  File('$basePath/repositories/$name/${name}_repository.dart').createSync();
+  File('$basePathUrls/$name/${name}_repository.dart').createSync();
   print('✅ Created GetX-style page: $name');
+
+  // Create URL file with boilerplate
+  final urlClassName = '${capitalize(name)}Repository';
+  writeFile('$basePathUrls/$name/${name}_repository.dart', '''
+  import 'package:$packageName/app/constants/strings.dart';
+  import 'package:dartz/dartz.dart';
+  import 'package:$packageName/app/core/failure/failure.dart';
+  import 'package:$packageName/app/data/network/network_api_services.dart';
+  import 'package:$packageName/app/data/model/api_model.dart';
+
+  class $urlClassName extends NetworkApiServices {
+    static String baseUrl = kBaseUrl;
+
+    // Add endpoints here
+    static String view = '\$baseUrl/view';
+  }
+  ''');
 }
 
 ////////////
 void writeFile(String path, String content) {
-  final file = File(path);
-  if (!file.existsSync()) {
+  try {
+    final file = File(path);
+    if (!file.existsSync()) {
+      file.createSync(recursive: true);
+    }
     file.writeAsStringSync(content);
+    print('✅ Successfully wrote to file: $path');
+  } catch (e) {
+    print('❌ Error writing to file $path: $e');
   }
 }
 
