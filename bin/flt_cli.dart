@@ -15,7 +15,7 @@ void main(List<String> arguments) {
 
     if (subCommand.startsWith('page:')) {
       final name = subCommand.split(':')[1];
-
+      // createGetView(name);
       createPage(name);
     } else {
       print('Unknown subcommand: $subCommand');
@@ -41,6 +41,26 @@ void createPage(String fullPath) async {
 
   print('✅ Successfully created page: $pageName under "$parentFolder"');
 }
+
+// void createGetView(String name) async {
+//   final command = 'get';
+//   final arguments = ['create', 'page:$name'];
+
+//   try {
+//     // Execute the `get` CLI command
+//     final result = await Process.run(command, arguments);
+
+//     if (result.exitCode == 0) {
+//       print('✅ Successfully executed: get create page:$name');
+//       print(result.stdout); // Display success output
+//     } else {
+//       print('❌ Error executing command: get create page:$name');
+//       print(result.stderr); // Display error output
+//     }
+//   } catch (e) {
+//     print('❌ Exception occurred while executing: $e');
+//   }
+// }
 
 void createDataFolder(String parentFolder, String name) {
   print('✅ CPath: $parentFolder');
